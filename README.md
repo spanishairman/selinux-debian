@@ -565,7 +565,7 @@ Last login: Fri Sep  6 09:35:40 2024 from 192.168.121.1
 vagrant@debian12:~$ sudo -i
 root@debian12:~# audit2why -al
 ```
-#### Разрешение для веб-сервера рботать на нестандартном порту
+#### Разрешение для веб-сервера работать на нестандартном порту
 Проверим, какие порты разрешены для типа порта _SELinux_ - _http\_port\_t_: 
 ```
 root@debian12:~# semanage port -l | grep "^http_port_t"
@@ -593,7 +593,7 @@ LISTEN                 0                      511                               
 LISTEN                 0                      128                                             [::1]:631                                            [::]:*                     users:(("cupsd",pid=619,fd=6))                                                                  
 LISTEN                 0                      128
 ```
-Как видим, веб-сервер успешно работает на новом порту, но в журнале аудита появились новые записи (напомню, _Selinux_ у нас работает в режиме _Permissive_: 
+Как видим, веб-сервер успешно работает на новом порту, но в журнале аудита появились новые записи (напомню, _Selinux_ у нас работает в режиме _Permissive_): 
 ```
 root@debian12:~# audit2why -al
 type=AVC msg=audit(1725453497.253:137): avc:  denied  { name_bind } for  pid=1398 comm="nginx" src=8085 scontext=system_u:system_r:httpd_t:s0 tcontext=system_u:object_r:unreserved_port_t:s0 tclass=tcp_socket permissive=1
