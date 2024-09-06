@@ -607,7 +607,7 @@ type=AVC msg=audit(1725453497.253:137): avc:  denied  { name_bind } for  pid=139
 root@debian12:~# semanage port -a -t http_port_t -p tcp 8085
 libsemanage.add_user: user sddm not in password file
 ```
-Снова провериим журнал: 
+Снова проверим журнал: 
 ```
 root@debian12:~# audit2why -al
 root@debian12:~#
