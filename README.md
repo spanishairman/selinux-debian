@@ -328,14 +328,8 @@ type=AVC msg=audit(1725523640.957:197): avc:  denied  { getattr } for  pid=1406 
 ```
 path="/run/console-setup/font-loaded" 
 ```
-Контекст:
-```
-SELinux// процесса //system_u:system_r:udev_t:s0
-```
-попытался выполнить действие _getattr_ над контекстом _SELinux_ объекта(цели):
-```
-system_u:object_r:var_run_t:s0
-```
+Контекст _SELinux_ процесса _system\_u:system\_r:udev\_t:s0_ попытался выполнить действие _getattr_ над контекстом _SELinux_ объекта(цели) _system\_u:object\_r:var\_run\_t:s0_.
+
 В данном случае это контекст _SELinux_ _systemd-udevd_, который запущен в домене _udev\_t_:
 ```
 root@debian12:~# ps -elfZ | grep udev
