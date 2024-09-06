@@ -66,14 +66,14 @@ SE Linux is activated.  You may need to reboot now.
 root@debian12:~# ls -l /.autorelabel 
 -rw-r--r-- 1 root root 0 сен  4 09:24 /.autorelabel
 ```
-После перезагрузки системе потребуется некоторое время, чтобы промаркировать файловые системы. 
+После перезагрузки системе потребуется некоторое время, чтобы промаркировать файловые системы:
 ![Маркировка файловых систем](20240904-01.png)
 
 А затем, когда процесс завершится, компьютер автоматически перезагрузится во второй раз. Когда компьютер загрузится, проверим, успешно ли всё прошло:
 ```
 root@debian12:~# check-selinux-installation
 ```
-Также убедимся, что у нас установлен пакет setools: 
+Также убедимся, что у нас установлен пакет _setools_: 
 ```
 root@debian12:~# apt show setools
 Package: setools
@@ -108,17 +108,17 @@ Description: tools for Security Enhanced Linux policy analysis
   * sesearch: SELinux policy query tool
 ```
 #### Настройка
- Основные утилиты, необходимые для работы с Selinux:
+ Основные утилиты, необходимые для работы с _Selinux_:
 
- - sestatus - утилита для просмотра состояния SELinux;
- - audit2why - преобразовывает сообщения аудита SELinux в описание причины отказа в доступе (audit2allow -w);
- - audit2allow - создаёт правила политики SELinux allow/dontaudit из журналов отклонённых операций;
- - semanage - средство управления политикой SELinux;
- - semanage-port - средство сопоставления портов для управления политикой SELinux;
- - semanage-boolean - утилита для управления политикой SELinux, основанная на использовании логических переключателей.
- - setenforce - изменить режим, в котором выполняется SELinux.
+ - _sestatus_ - утилита для просмотра состояния SELinux;
+ - _audit2why_ - преобразовывает сообщения аудита SELinux в описание причины отказа в доступе (audit2allow -w);
+ - _audit2allow_ - создаёт правила политики SELinux allow/dontaudit из журналов отклонённых операций;
+ - _semanage_ - средство управления политикой SELinux;
+ - _semanage-port_ - средство сопоставления портов для управления политикой SELinux;
+ - _semanage-boolean_ - утилита для управления политикой SELinux, основанная на использовании логических переключателей.
+ - _setenforce_ - изменить режим, в котором выполняется SELinux.
 
-Проверим статус Selinux: 
+Проверим статус _Selinux_: 
 ```
 root@debian12:~# sestatus 
 SELinux status:                 enabled
@@ -133,7 +133,7 @@ Memory protection checking:     actual (secure)
 Max kernel policy version:      33
 ```
 > [!NOTE]
-> Здесь мы видим, что в настоящее время Selinux работает в режиме Permissive, т.е. ограничения не работают, но в журнал заносятся записи о всех ошибках, связанных с разрешениями. 
+> Здесь мы видим, что в настоящее время Selinux работает в режиме _Permissive_, т.е. ограничения не работают, но в журнал заносятся записи о всех ошибках, связанных с разрешениями. 
  Временно изменим режим работы:
 ```
 root@debian12:~# setenforce 1
@@ -149,7 +149,7 @@ Policy deny_unknown status:     allowed
 Memory protection checking:     actual (secure)
 Max kernel policy version:      33
 ```
-Чтобы установить постоянный режим работы на Enforsing, потребуется отредактировать файл /etc/selinux/config: 
+Чтобы установить постоянный режим работы на _Enforcing_, потребуется отредактировать файл /etc/selinux/config: 
 ```
 # This file controls the state of SELinux on the system.
 # SELINUX= can take one of these three values:
@@ -166,7 +166,7 @@ SELINUXTYPE=default
 # SETLOCALDEFS= Check local definition changes
 SETLOCALDEFS=0
 ```
-Проверяем audit.log на наличие ошибок: 
+Проверяем _audit.log_ на наличие ошибок: 
 ```
 root@debian12:~# audit2why -al
 type=AVC msg=audit(1725360694.664:42): avc:  denied  { search } for  pid=550 comm="accounts-daemon" name=".cache" dev="dm-0" ino=24 scontext=system_u:system_r:accountsd_t:s0 tcontext=system_u:object_r:xdg_cache_t:s0 tclass=dir permissive=1
@@ -280,7 +280,7 @@ root@debian12:~# for i in $(audit2why -al | grep "comm=" | awk '{print $10}' | s
 "spawn"
 "udev-worker"
 ```
-Создадим разрешающий пользовательский модуль для accounts-daemon:
+Создадим разрешающий пользовательский модуль для _accounts-daemon_:
 ```
 root@debian12:~# ausearch --raw --comm "accounts-daemon" | audit2allow -M my-accounts-daemon
 ********************* ВАЖНО ************************
@@ -304,7 +304,7 @@ allow accountsd_t xdg_cache_t:dir search;
 root@debian12:~# semodule -i my-accounts-daemon.pp
 libsemanage.add_user: user sddm not in password file
 ```
-Посмотрим, какие разрешения нужны процессу udev-worker:
+Посмотрим, какие разрешения нужны процессу _udev-worker_:
 ```
 root@debian12:~# audit2why -al | grep "udev-worker"
 type=AVC msg=audit(1725523640.957:197): avc:  denied  { getattr } for  pid=1406 comm="(udev-worker)" path="/run/console-setup/font-loaded" dev="tmpfs" ino=874 scontext=system_u:system_r:udev_t:s0 tcontext=system_u:object_r:var_run_t:s0 tclass=file permissive=1
@@ -332,16 +332,16 @@ path="/run/console-setup/font-loaded"
 ```
 SELinux// процесса //system_u:system_r:udev_t:s0
 ```
-попытался выполнить действие getattr над контекстом Selinux объекта(цели):
+попытался выполнить действие **_getattr_** над контекстом _Selinux_ объекта(цели):
 ```
 system_u:object_r:var_run_t:s0
 ```
-В данном случае это контекст SELinux systemd-udevd, который запущен в домене udev_t:
+В данном случае это контекст _SELinux_ _systemd-udevd_, который запущен в домене _udev\_t_:
 ```
 root@debian12:~# ps -elfZ | grep udev
 system_u:system_r:udev_t:s0     4 S root         266       1  0  80   0 - 11980 do_epo 11:07 ?        00:00:00 /lib/systemd/systemd-udevd
 ```
-Создадим модули для udev-worker, colord, colord-sane: 
+Создадим модули для _udev-worker_, _colord_, _colord-sane_: 
 ```
 root@debian12:~# ausearch --raw --comm "udev-worker" | audit2allow -M my-udev-worker
 root@debian12:~# ausearch --raw --comm "colord" | audit2allow -M my-colord
@@ -447,7 +447,7 @@ type=USER_AVC msg=audit(1725542529.628:88): pid=554 uid=101 auid=4294967295 ses=
 type=USER_AVC msg=audit(1725542529.628:89): pid=554 uid=101 auid=4294967295 ses=4294967295 subj=system_u:system_r:system_dbusd_t:s0 msg='avc:  denied  { send_msg } for msgtype=method_return dest=:1.45 spid=552 tpid=901 scontext=system_u:system_r:avahi_t:s0 tcontext=system_u:system_r:colord_t:s0 tclass=dbus permissive=1  exe="/usr/bin/dbus-daemon" sauid=101 hostname=? addr=? terminal=?'
 type=USER_AVC msg=audit(1725542531.332:95): pid=1 uid=0 auid=4294967295 ses=4294967295 subj=system_u:system_r:init_t:s0 msg='avc:  denied  { status } for auid=n/a uid=113 gid=121 cmdline="/usr/libexec/gsd-power" function="mac_selinux_filter" scontext=system_u:system_r:xdm_t:s0 tcontext=system_u:system_r:init_t:s0 tclass=system permissive=1  exe="/usr/lib/systemd/systemd" sauid=0 hostname=? addr=? terminal=?'
 ```
-Найдем записи для pid=554, а так же узнаем, что это за служба и создадим модуль для данного процесса: 
+Найдем записи для **pid=554**, а так же узнаем, что это за служба и создадим модуль для данного процесса: 
 ```
 root@debian12:~# ausearch --pid 554
 ----
@@ -474,10 +474,10 @@ unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 0 S root 1372 1247  0 80 0
 root@debian12:~# ausearch --raw --pid 554 | audit2allow -M my-dbus-daemon
 ********************* ВАЖНО ************************
 Чтобы сделать этот пакет политики активным, выполните: semodule -i my-dbus-daemon.pp
-<code>
+```
  
 Проверим, что у нас получилось и сделаем модуль активным:
-<code bash>
+```
 root@debian12:~# cat my-dbus-daemon.te 
  
 module my-dbus-daemon 1.0;
@@ -572,12 +572,12 @@ vagrant@debian12:~$ sudo -i
 root@debian12:~# audit2why -al
 ```
 #### Разрешение для веб-сервера рботать на нестандартном порту
-Проверим, какие порты разрешены для типа порта SELinux - http_port_t: 
+Проверим, какие порты разрешены для типа порта _SELinux_ - _http\_port\_t_: 
 ```
 root@debian12:~# semanage port -l | grep "^http_port_t"
 http_port_t                    tcp      80, 443, 488, 8008, 8009, 8443, 8448
 ```
-Попробуем запустить nginx на порту, который не входит в полученный список. Для этого изменим параметр listen:
+Попробуем запустить _nginx_ на порту, который не входит в полученный список. Для этого изменим параметр _listen_:
 ```
 # Default server configuration
 #
@@ -585,7 +585,7 @@ server {
         listen 8085 default_server;
         listen [::]:8085 default_server;
 ```
-Пробуем перезапустить nginx, перед этим проверим журнал аудита:
+Пробуем перезапустить _nginx_, перед этим проверим журнал аудита:
 ```
 root@debian12:~# audit2why -al
 root@debian12:~#
@@ -608,7 +608,7 @@ type=AVC msg=audit(1725453497.253:137): avc:  denied  { name_bind } for  pid=139
  
                 You can use audit2allow to generate a loadable module to allow this access.
 ```
-Здесь нам рекомендуют создать модуль для того, чтобы убрать ошибку. Не всегда, полученные от утилиты _audit2why_, предложения являются оптимальными, поэтому мы сделаем по другому. Воспользуемся утилитой semanage: 
+Здесь нам рекомендуют создать модуль для того, чтобы убрать ошибку. Не всегда, полученные от утилиты _audit2why_, предложения являются оптимальными, поэтому мы сделаем по другому. Воспользуемся утилитой _semanage_:
 ```
 root@debian12:~# semanage port -a -t http_port_t -p tcp 8085
 libsemanage.add_user: user sddm not in password file
@@ -618,7 +618,7 @@ libsemanage.add_user: user sddm not in password file
 root@debian12:~# audit2why -al
 root@debian12:~#
 ```
-И список разрешённых портов для http_port_t: 
+И список разрешённых портов для _http\_port\_t_: 
 ```
 root@debian12:~# semanage port -l | grep "^http_port_t"
 http_port_t                    tcp      8085, 80, 443, 488, 8008, 8009, 8443, 8448
