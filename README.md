@@ -565,6 +565,54 @@ Last login: Fri Sep  6 09:35:40 2024 from 192.168.121.1
 vagrant@debian12:~$ sudo -i
 root@debian12:~# audit2why -al
 ```
+#### Отключение аудита некоторых событий
+Если мы считаем, что блокирование некоторых действий служб со стороны SELinux вполне себе нас устривает, но не хотим забивать журнал аудита записями о таких блокировках, отключи аудит подобных событий. Для примера, выполним отключение аудита событий службы cups-browsed.
+
+Удаляем ранее созданный модуль политики my-cups-browsed и проверяем журнал аудита:
+```
+root@debian12:~# semodule -r my-cups-browsed
+libsemanage.semanage_direct_remove_key: Removing last my-cups-browsed module (no other my-cups-browsed module exists at another priority).
+libsemanage.add_user: user sddm not in password file
+ 
+root@debian12:~# audit2why -al
+type=AVC msg=audit(1725622627.648:67): avc:  denied  { getsched } for  pid=667 comm="cups-browsed" scontext=system_u:system_r:cupsd_t:s0 tcontext=system_u:system_r:cupsd_t:s0 tclass=process permissive=1
+        Was caused by:
+                Missing type enforcement (TE) allow rule.
+ 
+                You can use audit2allow to generate a loadable module to allow this access.
+```
+Отредактируем ранее созданную политику для cups-browsed:
+```
+root@debian12:~# cat my-cups-browsed.te 
+
+module my-cups-browsed 1.0;
+ 
+require {
+        type cupsd_t;
+        class process getsched;
+}
+ 
+#============= cupsd_t ==============
+dontaudit cupsd_t self:process getsched;
+```
+> [!NOTE]
+> Здесь мы изменили действие allow на dontaudit. 
+
+С помощью _checkmodule_ соберём новый **небазовый** модуль политики (параметр -m).
+> [IMPORTANT]
+> Утилита _checkmodule_ может создавать либо **базовый** модуль политики (по умолчанию), либо **небазовый** модуль политики (параметр -m); обычно требуется
+> создать небазовый модуль политики для последующего добавления в существующее хранилище модулей, в котором уже  есть  базовый  модуль,  предоставленный 
+> базовой  политикой.  Используйте  semodule_package,  чтобы  объединить  этот  модуль  с  соответствующим необязательным файлом контекстов файлов и таким 
+> образом создать пакет политики, а затем используйте semodule для установки пакета модуля в хранилище модулей и загрузите получившуюся политику.
+
+```
+root@debian12:~# checkmodule -M -m my-cups-browsed.te -o my-cups-browsed.mod
+root@debian12:~# semodule_package -o my-cups-browsed.pp -m my-cups-browsed.mod 
+root@debian12:~# semodule -i my-cups-browsed.pp 
+libsemanage.add_user: user sddm not in password file
+root@debian12:~# semodule -l | grep my-cups
+my-cups-browsed
+```
 #### Разрешение для веб-сервера работать на нестандартном порту
 Проверим, какие порты разрешены для типа порта _SELinux_ - _http\_port\_t_: 
 ```
